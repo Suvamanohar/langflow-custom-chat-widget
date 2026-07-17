@@ -35,6 +35,7 @@ from langflow.api.v1 import (
     validate_router,
     variables_router,
 )
+from langflow.api.v1.chat_widget import router as chat_widget_router
 from langflow.api.v1.voice_mode import router as voice_mode_router
 from langflow.api.v2 import files_router as files_router_v2
 from langflow.api.v2 import mcp_router as mcp_router_v2
@@ -59,6 +60,7 @@ def include_deployment_router(target_router: APIRouter) -> None:
 
 
 router_v1.include_router(chat_router)
+router_v1.include_router(chat_widget_router)
 router_v1.include_router(endpoints_router)
 router_v1.include_router(validate_router)
 router_v1.include_router(store_router)

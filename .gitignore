@@ -1,3 +1,5 @@
+#never upload .env file as its my credentials
+.env
 # This is to avoid Opencommit hook from getting pushed
 prepare-commit-msg
 # Logs

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Assistant</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.chat-container{
+
+    width:420px;
+    height:700px;
+    background:white;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 15px 40px rgba(0,0,0,.3);
+
+    display:flex;
+    flex-direction:column;
+
+}
+
+.header{
+
+    background:linear-gradient(135deg,#4f46e5,#7c3aed);
+    color:white;
+    padding:18px;
+
+    display:flex;
+    align-items:center;
+    gap:12px;
+
+}
+
+.header img{
+
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    background:white;
+}
+
+.header h2{
+
+    font-size:20px;
+}
+
+.header p{
+
+    font-size:13px;
+    opacity:.9;
+}
+
+.messages{
+
+    flex:1;
+    overflow-y:auto;
+    padding:18px;
+    background:#f5f7fb;
+
+}
+
+.message{
+
+    display:flex;
+    margin-bottom:18px;
+    align-items:flex-end;
+
+}
+
+.bot{
+
+    justify-content:flex-start;
+
+}
+
+.user{
+
+    justify-content:flex-end;
+
+}
+
+.avatar{
+
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:20px;
+    margin-right:10px;
+}
+
+.bot .avatar{
+
+    background:#4f46e5;
+
+}
+
+.user .avatar{
+
+    background:#06b6d4;
+    margin-right:0;
+    margin-left:10px;
+
+}
+
+.bubble{
+
+    max-width:75%;
+    padding:14px 16px;
+    border-radius:18px;
+    line-height:1.5;
+    font-size:15px;
+}
+
+.bot .bubble{
+
+    background:white;
+    color:#333;
+    border-top-left-radius:5px;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+
+}
+
+.user .bubble{
+
+    background:linear-gradient(135deg,#4f46e5,#7c3aed);
+    color:white;
+    border-top-right-radius:5px;
+
+}
+
+.typing{
+
+    display:none;
+    margin:10px 0;
+}
+
+.typing span{
+
+    width:10px;
+    height:10px;
+    background:#777;
+    display:inline-block;
+    border-radius:50%;
+    margin-right:5px;
+    animation:blink 1s infinite;
+
+}
+
+.typing span:nth-child(2){
+
+animation-delay:.2s;
+
+}
+
+.typing span:nth-child(3){
+
+animation-delay:.4s;
+
+}
+
+@keyframes blink{
+
+0%,100%{
+
+opacity:.2;
+
+}
+
+50%{
+
+opacity:1;
+
+}
+
+}
+
+.input-area{
+
+display:flex;
+padding:15px;
+background:white;
+border-top:1px solid #eee;
+
+}
+
+input{
+
+flex:1;
+padding:14px;
+border-radius:30px;
+border:1px solid #ddd;
+outline:none;
+font-size:15px;
+
+}
+
+button{
+
+margin-left:10px;
+padding:14px 20px;
+border:none;
+border-radius:30px;
+background:linear-gradient(135deg,#4f46e5,#7c3aed);
+color:white;
+font-size:16px;
+cursor:pointer;
+transition:.3s;
+
+}
+
+button:hover{
+
+transform:scale(1.05);
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="chat-container">
+
+<div class="header">
+
+<img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
+
+<div>
+
+<h2>AI Assistant</h2>
+
+<p>Powered by Langflow + Groq</p>
+
+</div>
+
+</div>
+
+<div class="messages" id="messages">
+
+<div class="message bot">
+
+<div class="avatar">🤖</div>
+
+<div class="bubble">
+
+Hello 👋<br>
+
+I'm your AI Assistant.<br>
+
+How can I help you today?
+
+</div>
+
+</div>
+
+</div>
+
+<div class="typing" id="typing">
+
+<span></span>
+
+<span></span>
+
+<span></span>
+
+</div>
+
+<div class="input-area">
+
+<input
+id="message"
+placeholder="Type your message...">
+
+<button onclick="sendMessage()">
+
+➤
+
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+const API="http://localhost:7860/api/v1/chat/widget";
+
+let session="widget-session-001";
+
+async function sendMessage(){
+
+let input=document.getElementById("message");
+
+let text=input.value.trim();
+
+if(text==="") return;
+
+let messages=document.getElementById("messages");
+
+messages.innerHTML+=`
+
+<div class="message user">
+
+<div class="bubble">${text}</div>
+
+<div class="avatar">👤</div>
+
+</div>
+
+`;
+
+messages.scrollTop=messages.scrollHeight;
+
+input.value="";
+
+document.getElementById("typing").style.display="block";
+
+const response=await fetch(API,{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+
+message:text,
+
+session_id:session
+
+})
+
+});
+
+const data=await response.json();
+
+document.getElementById("typing").style.display="none";
+
+messages.innerHTML+=`
+
+<div class="message bot">
+
+<div class="avatar">🤖</div>
+
+<div class="bubble">${data.reply}</div>
+
+</div>
+
+`;
+
+messages.scrollTop=messages.scrollHeight;
+
+}
+
+document.getElementById("message").addEventListener("keypress",function(e){
+
+if(e.key==="Enter")
+
+sendMessage();
+
+});
+
+</script>
+
+</body>
+</html>
