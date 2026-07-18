@@ -481,8 +481,7 @@
                 "title_case": false,
                 "track_in_telemetry": false,
                 "type": "str",
-                "value": "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"
-              },
+                "value": "YOUR_GROQ_API_KEY"              },
               "base_url": {
                 "_input_type": "MessageTextInput",
                 "advanced": true,
