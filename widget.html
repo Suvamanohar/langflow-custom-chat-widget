@@ -305,87 +305,83 @@ placeholder="Type your message...">
 </div>
 
 <script>
+const API = "http://localhost:7860/api/v1/chat/widget";
 
-const API="http://localhost:7860/api/v1/chat/widget";
+let session = "widget-session-001";
 
-let session="widget-session-001";
+async function sendMessage() {
+    const input = document.getElementById("message");
+    const text = input.value.trim();
 
-async function sendMessage(){
+    if (text === "") return;
 
-let input=document.getElementById("message");
+    const messages = document.getElementById("messages");
 
-let text=input.value.trim();
+    messages.innerHTML += `
+        <div class="message user">
+            <div class="bubble">${text}</div>
+            <div class="avatar">👤</div>
+        </div>
+    `;
 
-if(text==="") return;
+    messages.scrollTop = messages.scrollHeight;
+    input.value = "";
 
-let messages=document.getElementById("messages");
+    document.getElementById("typing").style.display = "block";
 
-messages.innerHTML+=`
+    try {
+        const response = await fetch(API, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: text,
+                session_id: session
+            })
+        });
 
-<div class="message user">
+        const data = await response.json();
 
-<div class="bubble">${text}</div>
+        console.log("Backend response:", data);
 
-<div class="avatar">👤</div>
+        document.getElementById("typing").style.display = "none";
 
-</div>
+        if (!response.ok) {
+            throw new Error(data.detail || "Backend request failed");
+        }
 
-`;
+        if (data.session_id) {
+            session = data.session_id;
+        }
 
-messages.scrollTop=messages.scrollHeight;
+        messages.innerHTML += `
+            <div class="message bot">
+                <div class="avatar">🤖</div>
+                <div class="bubble">${data.reply}</div>
+            </div>
+        `;
+    } catch (error) {
+        document.getElementById("typing").style.display = "none";
 
-input.value="";
+        console.error("Widget error:", error);
 
-document.getElementById("typing").style.display="block";
+        messages.innerHTML += `
+            <div class="message bot">
+                <div class="avatar">🤖</div>
+                <div class="bubble">Error: ${error.message}</div>
+            </div>
+        `;
+    }
 
-const response=await fetch(API,{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":"application/json"
-
-},
-
-body:JSON.stringify({
-
-message:text,
-
-session_id:session
-
-})
-
-});
-
-const data=await response.json();
-
-document.getElementById("typing").style.display="none";
-
-messages.innerHTML+=`
-
-<div class="message bot">
-
-<div class="avatar">🤖</div>
-
-<div class="bubble">${data.reply}</div>
-
-</div>
-
-`;
-
-messages.scrollTop=messages.scrollHeight;
-
+    messages.scrollTop = messages.scrollHeight;
 }
 
-document.getElementById("message").addEventListener("keypress",function(e){
-
-if(e.key==="Enter")
-
-sendMessage();
-
+document.getElementById("message").addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+        sendMessage();
+    }
 });
-
 </script>
 
 </body>

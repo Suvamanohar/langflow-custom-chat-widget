@@ -1,4 +1,8 @@
 import os
+groq_api_key = os.getenv("GROQ_API_KEY")
+
+if not groq_api_key:
+    raise ValueError("GROQ_API_KEY is missing in .env")
 from typing import Any
 from uuid import uuid4
 
